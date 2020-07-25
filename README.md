@@ -76,7 +76,7 @@ java -jar target\ZeroProxy-1.0-jar-with-dependencies.jar 192.168.123.164 9999 D:
 
 或
 
-在chrome中下载[SwitchyOmega](chrome-extension://padekgcemlokbadohgkifijomclgjgif/options.html#!/about)，设置代理协议为http，代理服务器以及代理端口均为你输入的的。
+在chrome中下载[SwitchyOmega](chrome-extension://padekgcemlokbadohgkifijomclgjgif/options.html#!/about)，设置代理协议为http，代理服务器以及代理端口均为你输入的。
 
 ### android
 
