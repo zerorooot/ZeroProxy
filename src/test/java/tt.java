@@ -12,7 +12,7 @@ public class tt {
         int port = 9999;
         String path = "D:\\JavaCode\\ZeroProxy\\new";
         String account = "admin";
-        String password = "password";
+        String password = "12345";
         System.out.println("http://"+ip+":"+port+"/index.html");
         Serve serve = new Serve(ip, port, path);
         serve.getHttpProxyServer(account, password).start(ip, port);
