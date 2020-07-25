@@ -248,7 +248,11 @@ https://raw.githubusercontent.com/zerorooot/ZeroProxy/master/src/test/ad/json.tx
 f.0.a.pic@=.*@f.1.a
 ```
 
-保存，进入再次进入
+保存，最终效果是这样的👇
+
+![image-20200725210235848](src/test/image-20200725210235848.png)
+
+进入再次进入
 
 ```
 https://raw.githubusercontent.com/zerorooot/ZeroProxy/master/src/test/ad/json.txt?signal=12fsaw34567&time=8765431352
