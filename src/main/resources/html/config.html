@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Config</title>
+    <script>
+        window.onload = function () {
+            getConfigUrl();
+            getFile("config");
+        };
+        function getConfigUrl() {
+            const xmlHttpRequest = new XMLHttpRequest();
+            xmlHttpRequest.open("post", "getConfig", true);
+            xmlHttpRequest.setRequestHeader("Content-Type", "application/json")
+            xmlHttpRequest.send(null);
+            xmlHttpRequest.onreadystatechange = function () {
+                if (xmlHttpRequest.readyState === 4 && xmlHttpRequest.status === 200) {
+                    // const jsonArray = eval("(" + xmlHttpRequest.responseText + ")");
+                    const jsonArray = JSON.parse(xmlHttpRequest.responseText);
+                    const div = document.getElementById("urlDiv");
+                    const configa = document.createElement("a");
+                // <a href="javascript:void(0)" onclick="getFile('config')">config</a>
+                    configa.href = "javascript:void(0)";
+                    configa.onclick = function () {
+                        getFile("config")
+                    };
+                    const textNodeConfig = document.createTextNode("config");
+                    configa.append(textNodeConfig);
+                    div.appendChild(configa);
+                    const br = document.createElement("br");
+                    div.appendChild(br);
+
+                    for (let i = 0; i < jsonArray.length; i++) {
+                        const a = document.createElement("a");
+                        const textNode = document.createTextNode(jsonArray[i]);
+                        a.onclick = function () {
+                            getFile(jsonArray[i]);
+                        };
+                        a.href = "javascript:void(0)";
+                        a.append(textNode);
+                        div.appendChild(a);
+                        const br = document.createElement("br");
+                        div.appendChild(br);
+                    }
+                }
+            }
+        }
+        function getFile(url) {
+            const xmlHttpRequest = new XMLHttpRequest();
+            xmlHttpRequest.open("post", "getUrlFile", true);
+            xmlHttpRequest.setRequestHeader("Content-Type", "application/json")
+            xmlHttpRequest.send(url);
+            xmlHttpRequest.onreadystatechange = function () {
+                if (xmlHttpRequest.readyState === 4 && xmlHttpRequest.status === 200) {
+                    document.getElementById("textarea").value = xmlHttpRequest.responseText;
+                    document.getElementById("urlText").value = url;
+                }
+            }
+        }
+        function changeFile() {
+            const url = document.getElementById("urlText").value;
+            const content = document.getElementById("textarea").value;
+            // const t = "url=" + encodeURI(url) + "&content=" + encodeURI(content);
+            const t = "url=" + encodeURIComponent(url)+ "&content=" + encodeURIComponent(content);
+            const xmlHttpRequest = new XMLHttpRequest();
+            xmlHttpRequest.open("post", "changeFile", true);
+            xmlHttpRequest.setRequestHeader("Content-Type", "x-www-form-urlencoded")
+            xmlHttpRequest.send(t);
+            xmlHttpRequest.onreadystatechange = function () {
+                if (xmlHttpRequest.readyState === 4 && xmlHttpRequest.status === 200) {
+                    removeDiv()
+                    getConfigUrl();
+                    alert(xmlHttpRequest.responseText);
+                }
+            }
+        }
+
+        function removeDiv() {
+            const urlDiv = document.getElementById("urlDiv");
+            const divA = urlDiv.getElementsByTagName('a');
+            while (divA.length > 0) {
+                urlDiv.removeChild(divA[0]);
+            }
+            const divBr = urlDiv.getElementsByTagName('br');
+            while (divBr.length > 0) {
+                urlDiv.removeChild(divBr[0]);
+            }
+        }
+    </script>
+    <style>
+        body {
+            text-align: center
+        }
+    </style>
+</head>
+<body>
+<div id="urlDiv"></div>
+---------------------------------------------------------------------------------------------------------
+<br>
+<div>
+    <input type="hidden" name="url"  id="urlText">
+    <textarea id="textarea" name="comment"  cols="70" rows="40" autofocus></textarea>
+    <br>
+    <input type="submit" value="更改" onclick="changeFile()">
+</div>
+
+---------------------------------------------------------------------------------------------------------
+<br>
+<a href="check.html">返回主页</a>
+</body>
+</html>

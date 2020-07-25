@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Check</title>
+    <style>
+        body {
+            text-align: center
+        }
+    </style>
+    <script>
+        function checkJson(json, rule) {
+            if (rule.search("=") === -1) {
+                alert("= ?????")
+                return;
+            }
+            const xmlHttpRequest = new XMLHttpRequest();
+            const t = {
+                "method": "check",
+                "json": encodeURI(json),
+                "rule": encodeURI(rule)
+            };
+            xmlHttpRequest.open("post", "CheckTest", true);
+            xmlHttpRequest.setRequestHeader("Content-Type", "application/json")
+            xmlHttpRequest.send(JSON.stringify(t));
+            xmlHttpRequest.onreadystatechange = function () {
+                if (xmlHttpRequest.readyState === 4 && xmlHttpRequest.status === 200) {
+                    const text = xmlHttpRequest.responseText;
+                    document.getElementById("textarea").value = text;
+                }
+            }
+        }
+
+        function BanUrl(urls) {
+            const t = {
+                "method": "ban",
+                "url": encodeURI(urls)
+            };
+            const xmlHttpRequest = new XMLHttpRequest();
+            xmlHttpRequest.open("post", "CheckTest", true);
+            xmlHttpRequest.setRequestHeader("Content-Type", "application/json")
+            xmlHttpRequest.send(JSON.stringify(t));
+            xmlHttpRequest.onreadystatechange = function () {
+                if (xmlHttpRequest.readyState === 4 && xmlHttpRequest.status === 200) {
+                    const text = xmlHttpRequest.responseText;
+                    document.getElementById("infroSpan").innerText = urls + " 被ban？" + text;
+                }
+            }
+
+        }
+
+
+    </script>
+</head>
+
+
+<body>
+
+要测试的url：
+<br>
+<input type="text" id="BanUrl">
+<br>
+<button onclick="BanUrl(document.getElementById('BanUrl').value)">检测</button>
+<br>
+<span id="infroSpan"></span>
+<br>
+---------------------------------------------------------------------------------------------------------
+<br>
+要测试的json：
+<br>
+<textarea id="jsonText"></textarea>
+<br>
+使用的规则：
+<br>
+<input type="text" id="jsonRule">
+<br>
+<button onclick="checkJson(document.getElementById('jsonText').value,document.getElementById('jsonRule').value)">检测
+</button>
+<br>
+<textarea id="textarea" cols="50" rows="10"></textarea>
+<br>
+<a href="https://c.runoob.com/front-end/53" target="view_window">格式化json</a>
+<br>
+---------------------------------------------------------------------------------------------------------
+<br>
+<a href="config.html">更改配置</a>
+
+</body>
+</html>

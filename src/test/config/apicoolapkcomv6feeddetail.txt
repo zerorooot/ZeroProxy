@@ -1,0 +1,1 @@
+data.detailSponsorCard@=.*@data.detailSponsorCard

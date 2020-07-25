@@ -1,0 +1,3 @@
+data.battle_info@=.*@data.battle_info
+data.activity_banner_info@=.*@data.activity_banner_info
+data.pk_info@=.*@data.pk_info

@@ -1,0 +1,8 @@
+#知乎首页推荐中的知乎课堂
+#data.1.fields.header.text@=会员推荐@data.1
+#知乎首页会员推荐
+#data.1.common_card.feed_content.source_line.elements.1.text.panel_text@=会员推荐@data.1
+#知乎首页知乎课堂
+#data.1.common_card.feed_content.source_line.elements.1.text.panel_text@=知乎课堂@data.1
+#知乎首页盐选专栏
+data.1.common_card.footline.elements.0.text.panel_text@=盐选专栏.*?@data.1
