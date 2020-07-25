@@ -96,15 +96,95 @@ java -jar target\ZeroProxy-1.0-jar-with-dependencies.jar 192.168.123.164 9999 D:
 
 如果你没有开启网页界面，请在configFile下的config.txt里进行配置
 
+## 处理网址
+
+对所有的网址都要进行处理，不然无法得到你想要的结果。
+
+需要删除开头的https://,以及后面的参数（“？”以及“？”后的内容）。
+
+### 例
+
+假设，通过抓包，找到了此网址为广告地址
+
+```
+https://raw.githubusercontent.com/zerorooot/ZeroProxy/master/src/test/ad/123.txt?signal=12fsaw34567&time=8765431352
+```
+
+**删除**网址前面的 
+
+```
+https://
+```
+
+和网址“?”以及后面的内容
+
+```
+?signal=12fsaw34567&time=8765431352
+```
+
+把
+
+```
+raw.githubusercontent.com/zerorooot/ZeroProxy/master/src/test/ad/123.txt
+```
+
+输入到配置文件里
+
 ## 拦截请求
 
 ### 普通拦截
 
+把
 
+```
+raw.githubusercontent.com/zerorooot/ZeroProxy/master/src/test/ad/123.txt
+```
+
+输入到文本框里，并点击更改。
+
+最终效果是这样的👇
+
+![image-20200725192302167](src/test/image-20200725192302167.png)
+
+然后，再次进入，https://raw.githubusercontent.com/zerorooot/ZeroProxy/master/src/test/ad/123.txt?signal=12fsaw34567&time=8765431352，我们发现，网址被重定向到了127.0.0.1，成功实现了网址拦截
 
 ### 正则拦截
 
+但要是每次请求的网址都有变呢？难道要把所有的网址都存下来吗？明显不现实。
 
+注释“raw.githubusercontent.com/zerorooot/ZeroProxy/master/src/test/ad/123.txt”
+
+新加一条
+
+```
+raw.githubusercontent.com/zerorooot/ZeroProxy/master/src/test/ad/\d*.txt
+```
+
+输入到文本框里，并点击更改。
+
+最终效果是这样的👇
+
+![image-20200725193153710](src/test/image-20200725193153710.png)
+
+进入“https://raw.githubusercontent.com/zerorooot/ZeroProxy/master/src/test/ad/345.txt”和“https://raw.githubusercontent.com/zerorooot/ZeroProxy/master/src/test/ad/123.txt”，发现均被拦截。
+
+### 检测书写规则是否奏效
+
+由于正则可能存在转义等一堆问题，难道要没次都傻傻的进入被拦截的网址测试吗？明显太蠢了。
+
+点击最下方的<u>返回主页</u>
+
+在最上面，看到要测试的url。输入
+
+```
+https://raw.githubusercontent.com/zerorooot/ZeroProxy/master/src/test/ad/345.txt
+```
+
+返回的是true，证明我们书写的正则奏效了。
+
+### 注
+
+拦截请求这么配置就ok了。注意的是，对于某广告网址，需要先删除开头的https://,以及后面的参数（“？”以及“？”后的内容）。
 
 ## 更改返回的json
 
