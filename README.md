@@ -304,7 +304,7 @@ cat ca.crt > $(openssl x509 -inform PEM -subject_hash_old -in ca.crt  | head -1)
 ```
 
 命令生成安卓系统所接受的证书，然后把输出的文件移动到
-/system/etc/security/cacerts/并给与644权限,然后重启即可
+/system/etc/security/cacerts/并给与644权限
 
 当然，对于安卓系统，你也可以安装“move certificates”的magisk模块来解决不信任用户证书的问题
 
@@ -325,8 +325,4 @@ cat ca.crt > $(openssl x509 -inform PEM -subject_hash_old -in ca.crt  | head -1)
 # BUG
 
 在开启网页控制的情况下，某些时候会不返回数据，原因未知。如无必要，还请关闭网页控制。
-
-# 最后
-
-服了，你竟然能看到这里，那告诉你一个小秘密，src/test/config是本人自用的配置文件，拿去用吧( •̀ ω •́ )✧
 
