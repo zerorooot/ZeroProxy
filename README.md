@@ -23,7 +23,7 @@ ZeroProxy是一个在[proxyee](https://github.com/monkeyWie/proxyee)基础上开
 安装[maven](https://maven.apache.org/download.cgi)
 
 ```bash
-git clone git@github.com:zerorooot/ZeroProxy.git
+git clone https://github.com/zerorooot/ZeroProxy.git
 cd ZeroProxy
 mvn assembly:assembly
 ```
@@ -37,7 +37,7 @@ mvn assembly:assembly
 ```
 注：Android 7以及以上，系统不再信任用户安装的证书，你需要root后，下载src/test/913718f3.0，然后把文件移动到
 /system/etc/security/cacerts/
-并给与644权限,然后重启即可
+并给与644权限
 ```
 
 ## 运行
