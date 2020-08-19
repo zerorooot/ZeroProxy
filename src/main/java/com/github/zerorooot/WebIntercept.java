@@ -33,7 +33,6 @@ public class WebIntercept extends HttpProxyIntercept {
     private String account;
     private String password;
     private static final int DEFAULT_MAX_CONTENT_LENGTH = 1024 * 1024 * 8;
-    private boolean handleFlag = false;
 
 
     public WebIntercept(String ip, int port, String path, String account, String password) {
@@ -47,7 +46,8 @@ public class WebIntercept extends HttpProxyIntercept {
     @Override
     public void beforeRequest(Channel clientChannel, HttpRequest httpRequest, HttpProxyInterceptPipeline pipeline) throws Exception {
         RequestProto requestProto = ProtoUtil.getRequestProto(httpRequest);
-        if (requestProto == null) { //bad request
+        if (requestProto == null) {
+            //bad request
             clientChannel.close();
             return;
         }
@@ -57,13 +57,11 @@ public class WebIntercept extends HttpProxyIntercept {
         if (requestProto.getHost().equals(inetSocketAddress.getHostString()) &&
                 requestProto.getPort() == inetSocketAddress.getPort()) {
 
-
             if ("/favicon.ico".equals(httpRequest.uri())) {
                 return;
             }
 
             if ("/index.html".equals(httpRequest.uri()) || "/".equals(httpRequest.uri())) {
-                handleFlag = true;
                 String html;
                 if (Objects.nonNull(httpRequest.headers().get("cookie")) && checkCookie(httpRequest.headers().get("cookie"))) {
                     html = "http://" + ip + ":" + port + "/ban/check.html";
@@ -77,7 +75,6 @@ public class WebIntercept extends HttpProxyIntercept {
 
             //登录验证
             if ("/login".equals(httpRequest.uri())) {
-                handleFlag = true;
                 if (httpRequest instanceof FullHttpRequest) {
                     FullHttpRequest fullHttpRequest = (FullHttpRequest) httpRequest;
                     checkLogin(fullHttpRequest, clientChannel);
@@ -97,20 +94,17 @@ public class WebIntercept extends HttpProxyIntercept {
             if (Objects.nonNull(httpRequest.headers().get("cookie")) && checkCookie(httpRequest.headers().get("cookie")) && httpRequest.uri().startsWith("/ban")) {
                 //输出check
                 if ("/ban/check.html".equals(httpRequest.uri())) {
-                    handleFlag = true;
                     String html = new String(WebIntercept.class.getResourceAsStream("/html/check.html").readAllBytes());
                     response(clientChannel, html);
                 }
                 //config页面
                 if ("/ban/config.html".equals(httpRequest.uri())) {
-                    handleFlag = true;
                     String html =
                             new String(WebIntercept.class.getResourceAsStream("/html/config.html").readAllBytes());
                     response(clientChannel, html);
                 }
 
                 if ("/ban/changeFile".equals(httpRequest.uri())) {
-                    handleFlag = true;
                     if (httpRequest instanceof FullHttpRequest) {
                         FullHttpRequest fullHttpRequest = (FullHttpRequest) httpRequest;
                         changeFile(fullHttpRequest, clientChannel);
@@ -127,7 +121,6 @@ public class WebIntercept extends HttpProxyIntercept {
 
                 }
                 if ("/ban/getUrlFile".equals(httpRequest.uri())) {
-                    handleFlag = true;
                     if (httpRequest instanceof FullHttpRequest) {
                         FullHttpRequest fullHttpRequest = (FullHttpRequest) httpRequest;
                         getUrlFile(fullHttpRequest, clientChannel);
@@ -144,7 +137,6 @@ public class WebIntercept extends HttpProxyIntercept {
                 }
                 //验证传入的值
                 if ("/ban/CheckTest".equals(httpRequest.uri())) {
-                    handleFlag = true;
                     if (httpRequest instanceof FullHttpRequest) {
                         FullHttpRequest fullHttpRequest = (FullHttpRequest) httpRequest;
                         checkValue(fullHttpRequest, clientChannel);
@@ -170,7 +162,6 @@ public class WebIntercept extends HttpProxyIntercept {
                     JsonArray jsonArray = new Gson().fromJson(data, JsonArray.class);
                     response(clientChannel, jsonArray.toString());
                 }
-
             } else {
                 redirect(clientChannel, "http://" + ip + ":" + port + "/index.html");
             }
@@ -333,8 +324,6 @@ public class WebIntercept extends HttpProxyIntercept {
     @Override
     public void beforeRequest(Channel clientChannel, HttpContent httpContent,
                               HttpProxyInterceptPipeline pipeline) throws Exception {
-        if (!handleFlag) {
             pipeline.beforeRequest(clientChannel, httpContent);
-        }
     }
 }

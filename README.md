@@ -321,8 +321,3 @@ cat ca.crt > $(openssl x509 -inform PEM -subject_hash_old -in ca.crt  | head -1)
 问题：登不上网页
 
 解决：确定开启了网页模式，清除网页cookie后再重试（发生于改账号、密码后）
-
-# BUG
-
-在开启网页控制的情况下，某些时候会不返回数据，原因未知。如无必要，还请关闭网页控制。
-
