@@ -30,8 +30,8 @@ public class WebIntercept extends HttpProxyIntercept {
     private final String path;
     private final String ip;
     private final int port;
-    private String account;
-    private String password;
+    private final String account;
+    private final String password;
     private static final int DEFAULT_MAX_CONTENT_LENGTH = 1024 * 1024 * 8;
 
 
@@ -64,7 +64,7 @@ public class WebIntercept extends HttpProxyIntercept {
             if ("/index.html".equals(httpRequest.uri()) || "/".equals(httpRequest.uri())) {
                 String html;
                 if (Objects.nonNull(httpRequest.headers().get("cookie")) && checkCookie(httpRequest.headers().get("cookie"))) {
-                    html = "http://" + ip + ":" + port + "/ban/check.html";
+                    html = "http://" + ip + ":" + port + "/ban/config.html";
                     redirect(clientChannel, html);
                 } else {
                     html = new String(WebIntercept.class.getResourceAsStream("/html/index.html").readAllBytes());

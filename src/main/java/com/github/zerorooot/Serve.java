@@ -113,10 +113,11 @@ public class Serve {
     private  boolean check(HttpRequest httpRequest ,String replace) {
 //        System.out.println(url);
         String originalUrl = getOriginalUrl(httpRequest);
-        return check(originalUrl,replace);
+        return check(originalUrl, replace).isCheck();
     }
 
-    public  boolean check(String urls, String replace) {
+    public  UrlCheckBean check(String urls, String replace) {
+        UrlCheckBean urlCheckBean = new UrlCheckBean();
         String url = replace + urls.replaceAll("\\?.*", "");
         HashMap<String, LinkedList<String>> webUrlListMap =
                 new UrlList(path + File.separator + "config.txt").getWebUrlList();
@@ -133,14 +134,18 @@ public class Serve {
             for (String s : webUrlListMap.get(domain)) {
                 if (url.matches(s)) {
                     //要替换的url不输出，仅输出被ban的
-                    if (!replace.equals("@")) {
+                    if (!"@".equals(replace)) {
                         System.out.println(LocalTime.now().toString() + " ban : " + urls);
                     }
-                    return true;
+                    urlCheckBean.setCheck(true);
+                    urlCheckBean.setUrl(s);
+                    return urlCheckBean;
                 }
             }
         }
-        return false;
+        urlCheckBean.setCheck(false);
+        urlCheckBean.setUrl(url);
+        return urlCheckBean;
     }
 
     private  String getOriginalUrl(HttpRequest httpRequest) {
@@ -167,12 +172,12 @@ public class Serve {
                 return check(httpRequest, "@");
             }
 
+            @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("DM_DEFAULT_ENCODING")
             @Override
             public void handelResponse(HttpRequest httpRequest, FullHttpResponse httpResponse, HttpProxyInterceptPipeline pipeline) {
-
                 String origin = httpResponse.content().toString(Charset.defaultCharset());
-
-                String url = getOriginalUrl(httpRequest).replaceAll("\\?.*", "");
+                String orginalUrl = getOriginalUrl(httpRequest);
+                String url = check(orginalUrl, "@").getUrl().replace("@", "");
 
                 String fileName = path + File.separator + url.replace(".", "").replace("/", "").replace(
                         ":", "") + ".txt";
