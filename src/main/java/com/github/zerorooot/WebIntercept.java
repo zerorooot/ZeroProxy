@@ -16,10 +16,7 @@ import java.io.FileOutputStream;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -200,17 +197,18 @@ public class WebIntercept extends HttpProxyIntercept {
             String json = URLDecoder.decode(jsonObject.get("json").getAsString(), StandardCharsets.UTF_8);
             String rule = URLDecoder.decode(jsonObject.get("rule").getAsString(), StandardCharsets.UTF_8);
             String[] rules = rule.split("\n");
-            Properties properties = new Properties();
+            LinkedHashMap<String, String> linkedHashMap = new LinkedHashMap<>(rules.length);
             for (String s : rules) {
                 if (s.contains("=")) {
                     String key = s.split("=")[0];
                     String value = s.split("=")[1];
-                    properties.put(key, value);
+                    linkedHashMap.put(key, value);
                 }
             }
 
+
             String changeJson =
-                    new Serve(ip, port, path).replaceContent(new Gson().fromJson(json, JsonElement.class), properties);
+                    new Serve(ip, port, path).replaceContent(new Gson().fromJson(json, JsonElement.class), linkedHashMap);
 
             response(clientChannel, changeJson);
         }

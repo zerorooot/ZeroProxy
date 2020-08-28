@@ -1,4 +1,5 @@
 package com.github.zerorooot;
+
 import com.github.monkeywie.proxyee.exception.HttpProxyExceptionHandle;
 import com.github.monkeywie.proxyee.intercept.HttpProxyIntercept;
 import com.github.monkeywie.proxyee.intercept.HttpProxyInterceptInitializer;
@@ -18,21 +19,18 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.time.LocalTime;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * @Author: zero
  * @Date: 2020/7/23 18:56
  */
 public class Serve {
-    private  String path;
-    private  String ip;
-    private  int port;
+    private String path;
+    private String ip;
+    private int port;
 
-    public Serve( String ip, int port,String path) {
+    public Serve(String ip, int port, String path) {
         this.path = path;
         this.ip = ip;
         this.port = port;
@@ -87,7 +85,7 @@ public class Serve {
     }
 
 
-    private  HttpProxyIntercept getHttpProxyIntercept() {
+    private HttpProxyIntercept getHttpProxyIntercept() {
         HttpProxyIntercept httpProxyIntercept = new HttpProxyIntercept() {
             @Override
             public void beforeRequest(Channel clientChannel, HttpRequest httpRequest,
@@ -110,13 +108,13 @@ public class Serve {
      * @param replace     用于替换返回值
      * @return
      */
-    private  boolean check(HttpRequest httpRequest ,String replace) {
+    private boolean check(HttpRequest httpRequest, String replace) {
 //        System.out.println(url);
         String originalUrl = getOriginalUrl(httpRequest);
         return check(originalUrl, replace).isCheck();
     }
 
-    public  UrlCheckBean check(String urls, String replace) {
+    public UrlCheckBean check(String urls, String replace) {
         UrlCheckBean urlCheckBean = new UrlCheckBean();
         String url = replace + urls.replaceAll("\\?.*", "");
         HashMap<String, LinkedList<String>> webUrlListMap =
@@ -127,7 +125,6 @@ public class Serve {
         } else {
             domain = url;
         }
-
 
 
         if (Objects.nonNull(webUrlListMap.get(domain))) {
@@ -148,7 +145,7 @@ public class Serve {
         return urlCheckBean;
     }
 
-    private  String getOriginalUrl(HttpRequest httpRequest) {
+    private String getOriginalUrl(HttpRequest httpRequest) {
         ProtoUtil.RequestProto requestProto = ProtoUtil.getRequestProto(httpRequest);
         String webPort = "";
         assert requestProto != null;
@@ -162,17 +159,15 @@ public class Serve {
     /**
      * 替换返回内容
      *
-     * @param path 配置文件目录
      * @return 替换后的内容
      */
-    private  FullResponseIntercept getFullResponseIntercept() {
+    private FullResponseIntercept getFullResponseIntercept() {
         FullResponseIntercept fullResponseIntercept = new FullResponseIntercept() {
             @Override
             public boolean match(HttpRequest httpRequest, HttpResponse httpResponse, HttpProxyInterceptPipeline httpProxyInterceptPipeline) {
                 return check(httpRequest, "@");
             }
 
-            @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("DM_DEFAULT_ENCODING")
             @Override
             public void handelResponse(HttpRequest httpRequest, FullHttpResponse httpResponse, HttpProxyInterceptPipeline pipeline) {
                 String origin = httpResponse.content().toString(Charset.defaultCharset());
@@ -182,21 +177,31 @@ public class Serve {
                 String fileName = path + File.separator + url.replace(".", "").replace("/", "").replace(
                         ":", "") + ".txt";
 
-                Properties properties = new Properties();
+                LinkedHashMap<String, String> linkedHashMap = new LinkedHashMap<>();
                 try {
                     if (!new File(fileName).exists()) {
                         System.out.println("没找到 " + fileName + " 创建中。。。。");
                         new File(fileName).createNewFile();
                     }
-                    //转成utf-8，使properties支持中文
+                    //转成utf-8
                     InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(fileName), StandardCharsets.UTF_8);
-                    properties.load(inputStreamReader);
+                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        if (!line.startsWith("#")) {
+                            linkedHashMap.put(line.split("=")[0], line.split("=")[1]);
+                        }
+                    }
+                    bufferedReader.close();
                     inputStreamReader.close();
+                    System.out.println(linkedHashMap.toString());
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
-                String replace = replaceContent(new Gson().fromJson(origin, JsonElement.class), properties);
+                String replace = replaceContent(new Gson().fromJson(origin, JsonElement.class),
+                        linkedHashMap);
 
                 httpResponse.content().clear();
                 httpResponse.content().writeBytes(replace.getBytes());
@@ -210,13 +215,13 @@ public class Serve {
     /**
      * 替换json里的内容
      *
-     * @param jsonElement json
-     * @param properties  要替换的东西
+     * @param jsonElement   json
+     * @param linkedHashMap 要替换的东西
      * @return 替换后的json
      */
-    public  String replaceContent(JsonElement jsonElement, Properties properties) {
-        for (String name : properties.stringPropertyNames()) {
-            String value = properties.getProperty(name);
+    public String replaceContent(JsonElement jsonElement, LinkedHashMap<String, String> linkedHashMap) {
+        for (String name : linkedHashMap.keySet()) {
+            String value = linkedHashMap.get(name);
             if (name.contains(".")) {
                 jsonElement = singleReplaceContent(jsonElement, name, value);
             } else {
@@ -291,7 +296,7 @@ public class Serve {
      * @param value       要替换的内容,为null表示删除name字段
      * @return 替换后的json
      */
-    public  JsonElement singleReplaceContent(JsonElement jsonElement, String name, String value) {
+    public JsonElement singleReplaceContent(JsonElement jsonElement, String name, String value) {
         String[] keys = name.split("\\.");
         JsonElement j = jsonElement;
         for (int i = 0; i < keys.length - 1; i++) {
@@ -321,7 +326,7 @@ public class Serve {
                         if (Objects.nonNull(keyArray) && keyArray.toString().matches(checkValue)) {
                             return singleReplaceContent(j, value.substring(value.lastIndexOf("@") + 1), null);
                         } else {
-                            System.err.println(LocalTime.now().toString() + "   没找到 " +keyString +"跳过，不删除");
+                            System.err.println(LocalTime.now().toString() + "   没找到 " + keyString + "跳过，不删除");
                             return j;
                         }
 
@@ -374,7 +379,7 @@ public class Serve {
                     //替换JsonObject
                     if (Objects.nonNull(value)) {
                         //仅原字段存在时才更改
-                        if (jsonElement.getAsJsonObject().get(keyString) != null) {
+                        try{
                             JsonElement typeJson = jsonElement.getAsJsonObject().get(keyString);
                             System.out.println(LocalTime.now().toString() + "   " + keyString + " : " + typeJson + " ->" + value);
 
@@ -401,7 +406,7 @@ public class Serve {
                                 jsonElement.getAsJsonObject().addProperty(keyString, value);
                             }
 
-                        } else {
+                        } catch (Exception e1){
                             System.err.println(LocalTime.now().toString() + "   " + keyString + "  不存在，跳过~");
                         }
                     } else {
@@ -445,7 +450,7 @@ public class Serve {
      *
      * @param clientChannel
      */
-    private  void blockUrl(Channel clientChannel) {
+    private void blockUrl(Channel clientChannel) {
         HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.FOUND);
         response.headers().set(HttpHeaderNames.LOCATION, "http://127.0.0.1");
         HttpContent content = new DefaultLastHttpContent();
@@ -455,7 +460,7 @@ public class Serve {
     }
 
     //除去报错
-    private  HttpProxyExceptionHandle getHttpProxyExceptionHandle() {
+    private HttpProxyExceptionHandle getHttpProxyExceptionHandle() {
         HttpProxyExceptionHandle httpProxyExceptionHandle = new HttpProxyExceptionHandle() {
             @Override
             public void beforeCatch(Channel clientChannel, Throwable cause) throws Exception {
