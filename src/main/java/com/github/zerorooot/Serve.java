@@ -194,7 +194,7 @@ public class Serve {
                     BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                     String line;
                     while ((line = bufferedReader.readLine()) != null) {
-                        if (!line.startsWith("#")) {
+                        if (!line.startsWith("#") && !"".equals(line)) {
                             linkedHashMap.put(line.split("=")[0], line.split("=")[1]);
                         }
                     }
@@ -205,11 +205,16 @@ public class Serve {
                     e.printStackTrace();
                 }
 
-                String replace = replaceContent(new Gson().fromJson(origin, JsonElement.class),
-                        linkedHashMap);
 
-                httpResponse.content().clear();
-                httpResponse.content().writeBytes(replace.getBytes());
+                try {
+                    String replace = replaceContent(new Gson().fromJson(origin, JsonElement.class),
+                            linkedHashMap);
+                    httpResponse.content().clear();
+                    httpResponse.content().writeBytes(replace.getBytes());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
 
                 System.gc();
             }
