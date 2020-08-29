@@ -26,9 +26,9 @@ import java.util.*;
  * @Date: 2020/7/23 18:56
  */
 public class Serve {
-    private String path;
-    private String ip;
-    private int port;
+    private final String path;
+    private final String ip;
+    private final int port;
 
     public Serve(String ip, int port, String path) {
         this.path = path;
@@ -37,9 +37,8 @@ public class Serve {
     }
 
     /**
-     * 拦截网站
+     * 过滤网站
      *
-     * @param
      * @return
      */
     public HttpProxyServer getHttpProxyServer() {
@@ -62,6 +61,13 @@ public class Serve {
         return httpProxyServer;
     }
 
+    /**
+     * 拦截网站，web控制模式
+     *
+     * @param account  登录的账号
+     * @param password 登录的密码
+     * @return
+     */
     public HttpProxyServer getHttpProxyServer(String account, String password) {
         HttpProxyServerConfig config = new HttpProxyServerConfig();
         config.setHandleSsl(true);
@@ -194,7 +200,6 @@ public class Serve {
                     }
                     bufferedReader.close();
                     inputStreamReader.close();
-                    System.out.println(linkedHashMap.toString());
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -224,25 +229,35 @@ public class Serve {
             String value = linkedHashMap.get(name);
             if (name.contains(".")) {
                 jsonElement = singleReplaceContent(jsonElement, name, value);
-            } else {
-                //不含 "." ，证明是单个
+            }
+            //不含 "." ，证明是单个
+            if (!name.contains(".")) {
+                //不含 @，证明不是if删除模式
                 if (!name.contains("@")) {
-                    //不含 @，证明不是if删除模式
-                    try {
-                        int key = Integer.parseInt(name);
-                        System.out.println(LocalTime.now().toString() + "   " + jsonElement.getAsJsonArray().get(key) + " ->" + value);
-                        jsonElement.getAsJsonArray().set(key, new Gson().fromJson(value, JsonElement.class));
-                    } catch (Exception e) {
-//                        e.printStackTrace();
+                    //jsonArray
+                    if (name.matches("\\d*")) {
+                        try {
+                            int key = Integer.parseInt(name);
+                            System.out.println(LocalTime.now().toString() + "   " + jsonElement.getAsJsonArray().get(key) + " ->" + value);
+                            jsonElement.getAsJsonArray().set(key, new Gson().fromJson(value, JsonElement.class));
+                        } catch (IndexOutOfBoundsException e) {
+                            System.err.println("jsonArray 找不到" + name + " 跳过");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            System.err.println(jsonElement.toString());
+                            System.err.println(name + "=" + value);
+                        }
+                    }
+
+                    //jsonObject
+                    if (!name.matches("\\d*")) {
                         if (jsonElement.getAsJsonObject().get(name) != null) {
                             //判断类型
                             JsonElement typeJson = jsonElement.getAsJsonObject().get(name);
                             System.out.println(LocalTime.now().toString() + "   " + name + " : " + jsonElement.getAsJsonObject().get(name) + " ->" + value);
-
                             //判断value的类型
                             try {
                                 typeJson.getAsJsonPrimitive();
-
                                 if (typeJson.getAsJsonPrimitive().isString()) {
                                     jsonElement.getAsJsonObject().addProperty(name, value);
                                 }
@@ -256,32 +271,53 @@ public class Serve {
                                     Number number = NumberFormat.getInstance().parse(value);
                                     jsonElement.getAsJsonObject().addProperty(name, number);
                                 }
-
-                            } catch (Exception ignored) {
+                            } catch (IllegalStateException ignored) {
                                 //替換整个json
                                 jsonElement.getAsJsonObject().addProperty(name, value);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                System.err.println(jsonElement.toString());
+                                System.err.println(name + "=" + value);
                             }
+
+                        } else {
+                            System.err.println("jsonObject 找不到 " + name + " 跳过");
                         }
                     }
-                } else {
-                    //含 @ ，if删除模式
+
+                }
+
+                //含 @ ，if删除模式
+                if (name.contains("@")) {
+                    //读取@之前的name和value
                     name = name.substring(0, name.lastIndexOf("@"));
                     String checkValue = value.substring(0, value.lastIndexOf("@"));
-                    //读取@之前的name和value
-                    try {
-                        int key = Integer.parseInt(name);
-                        //检测
-                        if (jsonElement.getAsJsonArray().get(key) != null && jsonElement.getAsJsonArray().get(key).toString().matches(checkValue)) {
-                            jsonElement = singleReplaceContent(jsonElement, value.substring(value.lastIndexOf("@") + 1),
-                                    null);
+                    //jsonArray
+                    if (name.matches("\\d*")) {
+                        try {
+                            int key = Integer.parseInt(name);
+                            //检测
+                            if (jsonElement.getAsJsonArray().get(key).toString().matches(checkValue)) {
+                                jsonElement = singleReplaceContent(jsonElement, value.substring(value.lastIndexOf("@") + 1),
+                                        null);
+                            }
+                        } catch (IndexOutOfBoundsException e) {
+                            System.err.println("JsonArray 找不到 " + name + " 跳过");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            System.err.println(jsonElement.toString());
+                            System.err.println(name + "=" + value);
                         }
-                    } catch (Exception e) {
+                    }
+                    //jsonObject
+                    if (!name.matches("\\d*")) {
                         if (jsonElement.getAsJsonObject().get(name) != null && jsonElement.getAsJsonObject().get(name).toString().matches(checkValue)) {
                             jsonElement = singleReplaceContent(jsonElement, value.substring(value.lastIndexOf("@") + 1),
                                     null);
+                        } else {
+                            System.err.println("JsonObject 找不到 " + name + " 跳过");
                         }
                     }
-
                 }
             }
         }
@@ -319,24 +355,28 @@ public class Serve {
                 if (keyString.contains("@")) {
                     keyString = keyString.substring(0, keyString.lastIndexOf("@"));
                     String checkValue = value.substring(0, value.lastIndexOf("@"));
-                    try {
-                        int keyInt = Integer.parseInt(keyString);
-                        JsonElement keyArray = jsonElement.getAsJsonArray().get(keyInt);
-                        //找到符合的key
-                        if (Objects.nonNull(keyArray) && keyArray.toString().matches(checkValue)) {
-                            return singleReplaceContent(j, value.substring(value.lastIndexOf("@") + 1), null);
-                        } else {
+                    //jsonArray
+                    if (keyString.matches("\\d*")) {
+                        try {
+                            int keyInt = Integer.parseInt(keyString);
+                            JsonElement keyArray = jsonElement.getAsJsonArray().get(keyInt);
+                            //找到符合的key
+                            if (keyArray.toString().matches(checkValue)) {
+                                return singleReplaceContent(j, value.substring(value.lastIndexOf("@") + 1), null);
+                            }
+                        } catch (IndexOutOfBoundsException e) {
                             System.err.println(LocalTime.now().toString() + "   没找到 " + keyString + "跳过，不删除");
                             return j;
-                        }
-
-                    } catch (Exception e) {
-                        //蜜汁错误，输出看看效果
-                        if (!e.getMessage().contains("For input string")) {
-                            System.err.println(LocalTime.now().toString() + "   " + "出错啦~，联系开发者吧ヽ（≧□≦）ノ");
+                        } catch (Exception e) {
                             e.printStackTrace();
+                            System.err.println(j);
+                            System.err.println(name + "=" + value);
+                            return j;
                         }
-                        //找到符合的key
+                    }
+                    //jsonObject
+                    if (!keyString.matches("\\d*")) {
+                        //找到符合jsonObject的key
                         JsonElement keyObject = jsonElement.getAsJsonObject().get(keyString);
                         if (Objects.nonNull(keyObject) && keyObject.toString().replace("\"", "").matches(checkValue)) {
                             return singleReplaceContent(j, value.substring(value.lastIndexOf("@") + 1), null);
@@ -345,10 +385,8 @@ public class Serve {
                             System.err.println(LocalTime.now().toString() + "   没找到 " + keyString + "跳过，不删除");
                             return j;
                         }
-
-//                        if (jsonElement.getAsJsonObject().get(keyString).toString().matches(checkValue)) {}
-
                     }
+
                 }
 
                 if (name.contains("@") && Objects.nonNull(value) && value.contains("@")) {
@@ -356,33 +394,42 @@ public class Serve {
                     return j;
                 }
 
-                //替换
-                try {
-                    //替换JsonArray
+                //JsonArray
+                if (keyString.matches("\\d*")) {
                     int key = Integer.parseInt(keyString);
                     //替换
                     if (Objects.nonNull(value)) {
-                        //仅原字段存在时才更改
-                        if (jsonElement.getAsJsonArray().get(key) != null) {
-                            System.out.println(LocalTime.now().toString() + "   " + key + " : " + jsonElement.getAsJsonArray().get(key) + " ->" + value);
-                            jsonElement.getAsJsonArray().set(key, new Gson().fromJson(value, JsonElement.class));
-                        } else {
+                        try {
+                            //仅原字段存在时才更改
+                            if (jsonElement.getAsJsonArray().get(key) != null) {
+                                System.out.println(LocalTime.now().toString() + "   " + key + " : " + jsonElement.getAsJsonArray().get(key) + " ->" + value);
+                                jsonElement.getAsJsonArray().set(key, new Gson().fromJson(value, JsonElement.class));
+                            }
+                        } catch (IndexOutOfBoundsException indexOutOfBoundsException) {
                             System.err.println(LocalTime.now().toString() + "   " + keyString + " 不存在，跳过~");
+                            return j;
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            System.err.println(jsonElement.toString());
+                            System.err.println(j.toString());
+                            System.err.println(name + "=" + value);
+                            return j;
                         }
                     } else {
                         //删除
                         System.out.println(LocalTime.now().toString() + "   " + "remove " + jsonElement.getAsJsonArray().get(key));
                         jsonElement.getAsJsonArray().remove(key);
                     }
+                }
 
-                } catch (Exception e) {
+                //jsonObject
+                if (!keyString.matches("\\d*")) {
                     //替换JsonObject
                     if (Objects.nonNull(value)) {
                         //仅原字段存在时才更改
-                        try{
+                        if (jsonElement.getAsJsonObject().get(keyString) != null) {
                             JsonElement typeJson = jsonElement.getAsJsonObject().get(keyString);
                             System.out.println(LocalTime.now().toString() + "   " + keyString + " : " + typeJson + " ->" + value);
-
                             //判断value的类型
                             try {
                                 typeJson.getAsJsonPrimitive();
@@ -401,17 +448,19 @@ public class Serve {
                                     jsonElement.getAsJsonObject().addProperty(keyString, number);
                                 }
 
-                            } catch (Exception ignored) {
+                            } catch (IllegalStateException ignored) {
                                 //替換整个json
                                 jsonElement.getAsJsonObject().addProperty(keyString, value);
-                            }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                System.err.println(j.toString());
+                                System.err.println(typeJson.toString());
+                                System.err.println(name + "=" + value);
+                                return j;
 
-                        } catch (Exception e1){
-                            System.err.println(LocalTime.now().toString() + "   " + keyString + "  不存在，跳过~");
+                            }
                         }
                     } else {
-                        //删除
-                        assert jsonElement != null;
                         System.out.println(LocalTime.now().toString() + "   " + "remove  " + jsonElement.getAsJsonObject().get(keyString));
                         jsonElement.getAsJsonObject().remove(keyString);
                     }
@@ -436,6 +485,7 @@ public class Serve {
                     j.getAsJsonObject().remove(name);
                 } catch (Exception e1) {
                     e1.printStackTrace();
+                    return j;
                 }
             }
         }
