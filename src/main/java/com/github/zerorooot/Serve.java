@@ -50,6 +50,8 @@ public class Serve {
                 .proxyInterceptInitializer(new HttpProxyInterceptInitializer() {
                     @Override
                     public void init(HttpProxyInterceptPipeline pipeline) {
+                        //set requset encoding
+                        pipeline.addLast(setRequsetEncoding());
                         //ban url
                         pipeline.addLast(getHttpProxyIntercept());
                         //change json
@@ -59,6 +61,22 @@ public class Serve {
                 }).httpProxyExceptionHandle(getHttpProxyExceptionHandle());
 
         return httpProxyServer;
+    }
+
+    /**
+     * 设置请求头的编码类型，防止返回的时候乱码
+     *
+     * @return
+     */
+    public HttpProxyIntercept setRequsetEncoding() {
+        HttpProxyIntercept httpProxyIntercept = new HttpProxyIntercept() {
+            @Override
+            public void beforeRequest(Channel clientChannel, HttpRequest httpRequest, HttpProxyInterceptPipeline pipeline) throws Exception {
+                httpRequest.headers().set("Accept-Encoding", "gzip");
+                pipeline.beforeRequest(clientChannel, httpRequest);
+            }
+        };
+        return httpProxyIntercept;
     }
 
     /**
@@ -77,6 +95,8 @@ public class Serve {
                 .proxyInterceptInitializer(new HttpProxyInterceptInitializer() {
                     @Override
                     public void init(HttpProxyInterceptPipeline pipeline) {
+                        //set requset encoding
+                        pipeline.addLast(setRequsetEncoding());
                         //ban url
                         pipeline.addLast(getHttpProxyIntercept());
                         //change json
