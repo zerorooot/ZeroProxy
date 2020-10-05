@@ -195,7 +195,7 @@ public class Serve {
             }
 
             @Override
-            public void handelResponse(HttpRequest httpRequest, FullHttpResponse httpResponse, HttpProxyInterceptPipeline pipeline) {
+            public void handleResponse(HttpRequest httpRequest, FullHttpResponse httpResponse, HttpProxyInterceptPipeline pipeline) {
                 String origin = httpResponse.content().toString(Charset.defaultCharset());
                 String orginalUrl = getOriginalUrl(httpRequest);
                 String url = check(orginalUrl, "@").getUrl().replace("@", "");

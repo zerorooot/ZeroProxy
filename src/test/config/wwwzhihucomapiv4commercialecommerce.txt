@@ -1,0 +1,2 @@
+#data.isEcommerce=false
+data.detail@=.*@data.detail

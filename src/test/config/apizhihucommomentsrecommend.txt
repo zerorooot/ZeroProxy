@@ -1,0 +1,9 @@
+data.8.type@=feed_advert@data.8
+data.7.type@=feed_advert@data.7
+data.6.type@=feed_advert@data.6
+data.5.type@=feed_advert@data.5
+data.4.type@=feed_advert@data.4
+data.3.type@=feed_advert@data.3
+data.2.type@=feed_advert@data.2
+data.1.type@=feed_advert@data.1
+data.0.type@=feed_advert@data.0

@@ -8,8 +8,8 @@ import java.io.IOException;
  */
 public class tt {
     public static void main(String[] args) throws IOException {
-        String ip = "192.168.123.164";
-        int port = 9999;
+        String ip = "192.168.123.33";
+        int port = 4305;
         String path = "D:\\JavaCode\\ZeroProxy\\src\\test\\config";
         String account = "admin";
         String password = "12345";

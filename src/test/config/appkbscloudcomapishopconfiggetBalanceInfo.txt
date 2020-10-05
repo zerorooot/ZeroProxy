@@ -1,0 +1,2 @@
+#data.balance_info.select_price=["100","50","1"]
+data.balance_info.min_price=1

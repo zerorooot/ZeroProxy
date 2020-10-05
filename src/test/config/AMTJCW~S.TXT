@@ -1,0 +1,8 @@
+ad_info@=.*@ad_info
+roundtable_info@=.*@roundtable_info
+#----------盐选推荐-------------
+data.4.answer_type@=paid@data.4
+data.3.answer_type@=paid@data.3
+data.2.answer_type@=paid@data.2
+data.1.answer_type@=paid@data.1
+data.0.answer_type@=paid@data.0

@@ -1,0 +1,2 @@
+data.ad.adpic=""
+data.ad.adurl="
