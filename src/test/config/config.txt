@@ -20,6 +20,7 @@ www.zhihu.com/api/v4/commercial/ecommerce
 @api.zhihu.com/topstory/recommend
 #知乎具体问题下的广告
 @api.zhihu.com/v4/questions/\d*/answers
+www.zhihu.com/api/v4/answers/\d*/recommendations
 #知乎我的关注里的广告
 @api.zhihu.com/moments/recommend
 #知乎好物推荐
